@@ -1,0 +1,107 @@
+<!DOCTYPE html>  
+<html lang="en"><head>  
+<meta charset="utf-8"> 
+
+
+   <title>AC Demo</title>
+
+		<script src="jquery.min.js">
+			
+		</script>
+		<link rel="stylesheet" href="css/refreshform.css" />
+		<script>
+				$(document).ready(function(){  
+					$("#submit").click(function(){
+					var name = $("#name").val();
+					});
+					});
+		</script>
+		
+      <script type="text/javascript">
+         var socket = null;
+         var isopen = false;
+
+         window.onload = function() {
+
+            socket = new WebSocket("ws://sp.ebiw.com:9000");
+            socket.binaryType = "arraybuffer";
+
+            socket.onopen = function() {
+               console.log("Connected!");
+               isopen = true;
+			   socket.send("LOGIN-RPI3_1");
+            }
+
+            socket.onmessage = function(e) {
+               if (typeof e.data == "string") {
+                  console.log("Response from AC hardware: " + e.data);
+               } else {
+                  var arr = new Uint8Array(e.data);
+                  var hex = '';
+                  for (var i = 0; i < arr.length; i++) {
+                     hex += ('00' + arr[i].toString(16)).substr(-2);
+                  }
+                  console.log("Binary message received: " + hex);
+               }
+            }
+
+            socket.onclose = function(e) {
+               console.log("Connection closed.");
+               socket = null;
+               isopen = false;
+            }
+         };
+
+     $(document).ready(function(){  
+		$("#submit").click(function(){
+            
+			var name = $("#name").val();				
+            if (isopen) {
+				
+               socket.send("DATA-SENSOR1-"+name);
+               console.log("Text message sent. " +name);               
+            } else {
+               console.log("Connection not opened.")
+			   console.log("Text message failed to send. " +name); 
+			   
+            }
+			// !!! to empty the text field
+																	if(name !=''){
+																			  
+																			document.getElementById("name").value = '';
+																					
+																			}
+			 });
+		 
+		 
+		 });
+
+         function sendBinary() {
+            if (isopen) {
+               var buf = new ArrayBuffer(32);
+               var arr = new Uint8Array(buf);
+               for (i = 0; i < arr.length; ++i) arr[i] = i;
+               socket.send(buf);
+               console.log("Binary message sent.");
+            } else {
+               console.log("Connection not opened.")
+            }
+         };
+      </script>
+   </head>
+   <body>
+
+      <h1>Alive Home</h1>
+      <br>   
+
+      <form id="form" allign=center>
+				<h3>Enter AC Commands</h3>
+				<label></label>
+				<br/>
+				<input type="text" id="name" placeholder="Enter AC Commands"/><br/>
+				<br/>
+				<input type="button" id="submit" value="SEND"/>
+			</form>
+
+ </body>
+</html>

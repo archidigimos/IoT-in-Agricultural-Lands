@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <script type="text/javascript">
+         var socket = null;
+         var isopen = false;
+
+         window.onload = function() {
+
+            socket = new WebSocket("ws://sp.ebiw.com:9000");
+            socket.binaryType = "arraybuffer";
+
+            socket.onopen = function() {
+               console.log("Connected!");
+               isopen = true;
+            }
+
+            socket.onmessage = function(e) {
+               if (typeof e.data == "string") {
+                  console.log("Text message received: " + e.data);
+
+                  var data_string = e.data;
+                  var data_parsed = data_string.split('-');
+
+                  document.getElementById('temperature').innerHTML = data_parsed[2];
+                  document.getElementById('humidity').innerHTML = data_parsed[3];
+                  document.getElementById('soilmoisture').innerHTML = data_parsed[4];
+                  document.getElementById('flowrate').innerHTML = data_parsed[5];
+
+               } else {
+                  var arr = new Uint8Array(e.data);
+                  var hex = '';
+                  for (var i = 0; i < arr.length; i++) {
+                     hex += ('00' + arr[i].toString(16)).substr(-2);
+                  }
+                  console.log("Binary message received: " + hex);
+               }
+            }
+
+            socket.onclose = function(e) {
+               console.log("Connection closed.");
+               socket = null;
+               isopen = false;
+            }
+         };
+      </script>
+   </head>
+   <body>
+      <h1 style="text-align: center;"><span style="color: #0000ff;"><strong>SMART SPRINKLER IRRIGATION SYSTEM</strong></span></h1>
+<h2 style="text-align: center;">&nbsp;</h2>
+<h2 style="text-align: center;">
+   <span style="color: #ff0000;">Temperature: <span style="color: #000000;"><span id="temperature"></span> degree C</span></span> &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+   <strong><span style="color: #ff0000;">Humidity: <span style="color: #000000;"><span id="humidity"></span>%</span> &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;</strong></span>
+   <strong><span style="color: #ff0000;">Soil Moisture: <span style="color: #000000;"><span id="soilmoisture"></span>%</span>&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;</strong></span>
+   <strong><span style="color: #ff0000;">Flow Rate: <span style="color: #000000;"><span id="flowrate"></span>L/second</span> &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp;
+   </body>
+</html>
